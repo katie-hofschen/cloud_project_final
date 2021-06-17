@@ -1,0 +1,21 @@
+git:
+  uri: https://github.com/<repo>
+  user: <user>
+  token: <password>
+
+ci:
+  plan-only: false
+  environment: cloud
+
+aws:
+  region: eu-west-1
+  s3-bucket: s3-name
+
+  access-key: <access-key>
+  secret-key: <secret-key>
+
+  key-pair-name: <key-name>
+  ssh-ip-cidr: <cidr>
+
+  ami-id: <id of ami to use>
+  instance-type: t2.nano

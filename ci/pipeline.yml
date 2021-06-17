@@ -1,0 +1,72 @@
+---
+resource_types:
+  - name: terraform
+    type: docker-image
+    source:
+      repository: ljfranklin/terraform-resource
+      tag: latest
+
+resources:
+  - name: git
+    type: git
+    source:
+      uri: ((git.uri))
+      branch: master
+      username: ((git.user))
+      password: ((git.token))
+
+  - name: terraform
+    type: terraform
+    source:
+      terraform_source: git/terraform
+      env_name: ((ci.environment))
+      delete_on_failure: true
+      backend_type: s3
+      backend_config:
+        access_key: ((aws.access-key))
+        secret_key: ((aws.secret-key))
+        bucket: ((aws.s3-bucket))
+        region: ((aws.region))
+        key: resource-state/terraform.tfstate
+
+jobs:
+  - name: create-resources
+    public: true
+    plan:
+      - get: git
+        params: {depth: 1}
+      - put: terraform
+        params:
+          env_name: ((ci.environment))
+          plan_only: ((ci.plan-only))
+          vars:
+            access_key: ((aws.access-key))
+            secret_key: ((aws.secret-key))
+            region: ((aws.region))
+            s3_bucket: ((aws.s3-bucket))
+            key_pair_name: ((aws.key-pair-name))
+            ssh_ip_cidr: ((aws.ssh-ip-cidr))
+            ami_id: ((aws.ami-id))
+            instance_type: ((aws.instance-type))
+            source_dir: "/tmp/build/put/git"
+
+  - name: destroy-resources
+    plan:
+      - get: git
+        params: {depth: 1}
+      - put: terraform
+        params:
+          env_name: ((ci.environment))
+          action: destroy
+          vars:
+            access_key: ((aws.access-key))
+            secret_key: ((aws.secret-key))
+            region: ((aws.region))
+            s3_bucket: ((aws.s3-bucket))
+            key_pair_name: ((aws.key-pair-name))
+            ssh_ip_cidr: ((aws.ssh-ip-cidr))
+            ami_id: ((aws.ami-id))
+            instance_type: ((aws.instance-type))
+            source_dir: "/tmp/build/put/git"
+        get_params:
+          action: destroy
